@@ -1,0 +1,40 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Unzip source code
+        run: |
+          unzip aura-music-native.zip -d extracted_source
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies & Build APK
+        run: |
+          cd extracted_source
+          cd $(ls -d */ | head -n 1)
+          flutter pub get
+          flutter build apk --debug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aura-debug-apk
+          path: |
+            extracted_source/**/build/app/outputs/flutter-apk/app-debug.apk
